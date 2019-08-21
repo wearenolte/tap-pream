@@ -15,7 +15,7 @@ def get_ig_user_metadata(ig_id):
         "fields": "followers_count,media_count"
     }
     r = requests.Request(method='GET', url=url, params=params)
-    return session.send(r.prepare())
+    return session.send(r.prepare()).json()
 
 
 def get_ig_user_lifetime_insights(ig_id):
@@ -26,15 +26,40 @@ def get_ig_user_lifetime_insights(ig_id):
         "period": "lifetime"
     }
     r = requests.Request(method='GET', url=url, params=params)
-    return session.send(r.prepare())
+    return session.send(r.prepare()).json()
 
 
-def get_user_medias():
+def get_ig_user_medias(ig_id):
+    url = fb_graph_url + ig_id + "/media"
+    params = {
+        "access_token": access_token,
+    }
+    r = requests.Request(method='GET', url=url, params=params)
+    return session.send(r.prepare()).json()
+
+
+media_id = "17906226784338300"
+def get_ig_media_metadata(ig_media_id):
+    url = fb_graph_url + ig_media_id
+    params = {
+        "access_token": access_token,
+        "fields": "caption,comments_count,like_count,media_type"
+    }
+    r = requests.Request(method='GET', url=url, params=params)
+    return session.send(r.prepare()).json()
+
+
+def get_ig_media_insights():
     pass
 
 
 metadata = get_ig_user_metadata(ig_business_id)
 insights = get_ig_user_lifetime_insights(ig_business_id)
-print("metadata: ", "/n", metadata.json())
-print("insights: ", "/n", insights.json())
+media_objects = get_ig_user_medias(ig_business_id)
+media_metadata = get_ig_media_metadata(media_id)
+print("metadata: ", "\n", metadata)
+print("insights: ", "\n", insights)
+print("media objects: ", "\n", media_objects)
+print("media metadata :", "\n", media_metadata)
+
 
