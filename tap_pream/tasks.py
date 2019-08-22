@@ -1,6 +1,8 @@
 import requests
 from datetime import datetime
 
+from requests.exceptions import RequestException
+
 from celery_app import app
 
 from secret import access_token
@@ -17,6 +19,7 @@ class Client:
         self.session = requests.Session()
 
 
+@app.task(autoretry_for=(RequestException,), retry_backoff=True)
 def get_ig_user_metadata(ig_id):
     url = fb_graph_url + ig_id
     params = {
@@ -27,6 +30,7 @@ def get_ig_user_metadata(ig_id):
     return session.send(r.prepare()).json()
 
 
+@app.task(autoretry_for=(RequestException,), retry_backoff=True)
 def get_ig_user_lifetime_insights(ig_id):
     url = fb_graph_url + ig_id + "/insights"
     params = {
@@ -38,6 +42,7 @@ def get_ig_user_lifetime_insights(ig_id):
     return session.send(r.prepare()).json()
 
 
+@app.task(autoretry_for=(RequestException,), retry_backoff=True)
 def get_ig_user_medias(ig_id):
     url = fb_graph_url + ig_id + "/media"
     params = {
@@ -47,6 +52,7 @@ def get_ig_user_medias(ig_id):
     return session.send(r.prepare()).json()
 
 
+@app.task(autoretry_for=(RequestException,), retry_backoff=True)
 def get_ig_media_metadata(ig_media_id):
     url = fb_graph_url + ig_media_id
     params = {
@@ -57,6 +63,7 @@ def get_ig_media_metadata(ig_media_id):
     return session.send(r.prepare()).json()
 
 
+@app.task(autoretry_for=(RequestException,), retry_backoff=True)
 def get_ig_media_insights(ig_media_id):
     url = fb_graph_url + ig_media_id + "/insights"
     params = {
