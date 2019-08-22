@@ -1,4 +1,7 @@
 import requests
+from datetime import datetime
+
+from celery_app import app
 
 from secret import access_token
 
@@ -64,16 +67,20 @@ def get_ig_media_insights(ig_media_id):
     return session.send(r.prepare()).json()
 
 
-metadata = get_ig_user_metadata(ig_business_id)
-insights = get_ig_user_lifetime_insights(ig_business_id)
-media_objects = get_ig_user_medias(ig_business_id)
-media_metadata = get_ig_media_metadata(media_objects['data'][1]['id'])
-media_insights = get_ig_media_insights(media_objects['data'][1]['id'])
-print("metadata: ", "\n", metadata)
-print("insights: ", "\n", insights)
-print("media objects: ", "\n", media_objects)
-print("media metadata :", "\n", media_metadata)
-print("media insights :", "\n", media_insights)
+# metadata = get_ig_user_metadata(ig_business_id)
+# insights = get_ig_user_lifetime_insights(ig_business_id)
+# media_objects = get_ig_user_medias(ig_business_id)
+# media_metadata = get_ig_media_metadata(media_objects['data'][1]['id'])
+# media_insights = get_ig_media_insights(media_objects['data'][1]['id'])
+# print("metadata: ", "\n", metadata)
+# print("insights: ", "\n", insights)
+# print("media objects: ", "\n", media_objects)
+# print("media metadata :", "\n", media_metadata)
+# print("media insights :", "\n", media_insights)
+
+@app.task
+def test_task():
+    print(datetime.now())
 
 
 
