@@ -23,6 +23,11 @@ http_client = Client()
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_metadata")
 def get_user_metadata(ig_id):
+    """
+    Get Instagram user metadata
+    :param ig_id: Instagram user id
+    :return: Follower and media count of user
+    """
     url = fb_graph_url + ig_id
     params = {
         "access_token": access_token,
@@ -34,6 +39,11 @@ def get_user_metadata(ig_id):
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_insights")
 def get_user_insights(ig_id):
+    """
+    Get Instagram user insights
+    :param ig_id: Instagram user id
+    :return: Insight metrics of a user
+    """
     url = fb_graph_url + ig_id + "/insights"
     params = {
         "access_token": access_token,
@@ -46,6 +56,9 @@ def get_user_insights(ig_id):
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_medias")
 def get_user_medias(ig_id):
+    """
+    Get media objects of a user
+    """
     url = fb_graph_url + ig_id + "/media"
     params = {
         "access_token": access_token,
@@ -56,6 +69,9 @@ def get_user_medias(ig_id):
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_media_metadata")
 def get_media_metadata(ig_media_id):
+    """
+    Get metadata of an Instagram Media Object.
+    """
     url = fb_graph_url + ig_media_id
     params = {
         "access_token": access_token,
@@ -67,6 +83,9 @@ def get_media_metadata(ig_media_id):
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_media_insights")
 def get_media_insights(ig_media_id):
+    """
+    Get insights of an Instagram Media Object.
+    """
     url = fb_graph_url + ig_media_id + "/insights"
     params = {
         "access_token": access_token,
@@ -76,6 +95,10 @@ def get_media_insights(ig_media_id):
     return http_client.session.send(r.prepare()).json()
 
 
+@app.task
+def send_data(data):
+    """Send fetched data to Stitch"""
+    pass
 # metadata = get_ig_user_metadata(ig_business_id)
 # insights = get_ig_user_insights(ig_business_id)
 # media_objects = get_ig_user_medias(ig_business_id)
