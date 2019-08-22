@@ -1,0 +1,16 @@
+version: '3'
+services:
+  worker:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: worker:latest
+    depends_on:
+      - redis
+    restart: 'no'
+    volumes:
+      - ./tap_stream:/tap_stream
+    working_dir: tap-pream/tap_pream
+
+  redis:
+    image: redis

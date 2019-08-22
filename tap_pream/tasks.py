@@ -1,11 +1,20 @@
 import requests
 
-access_token = "EAAGvXsNlQlQBAPrFpU59AXKAUyOUlUnYHdmS9XItpZAhdobTcqmQ6DnB9iuCY759auJOfr3jjrZA1s7mFaBf7FKpVg8K5CuwCYPaTXZA82ZAZBzXZBcQFwdiS6wmc47Xq5254dMvMxfZAG3QR6XShK7kyEndfZA8n7VKUb7zYZAm8BAZDZD"
+access_token: "EAAGvXsNlQlQBAPrFpU59AXKAUyOUlUnYHdmS9XItpZAhdobTcqmQ6DnB9iuCY759auJOfr3jjrZA1s7mFaBf7FKpVg8K5CuwCYPaTXZA82ZAZBzXZBcQFwdiS6wmc47Xq5254dMvMxfZAG3QR6XShK7kyEndfZA8n7VKUb7zYZAm8BAZDZD"
+
 
 fb_graph_url = "https://graph.facebook.com/v4.0/"
 ig_business_id = "17841401743760151"
 
 session = requests.Session()
+
+import sys
+
+print(sys.path)
+
+class Client:
+    def __init__(self):
+        self.session = requests.Session()
 
 
 def get_ig_user_metadata(ig_id):
