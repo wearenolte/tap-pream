@@ -22,14 +22,6 @@ class Client:
 http_client = Client()
 
 
-@app.task
-def fetch_user_ids():
-    """
-    :return: Instagram user ids
-    """
-    return ig_business_ids
-
-
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_metadata")
 def get_user_metadata(ig_id):
     """
@@ -49,7 +41,7 @@ def get_user_metadata(ig_id):
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_insights")
 def get_user_insights(ig_id):
     """
-    Get Instagram user insights
+    Get insights of Instagram user
     :param ig_id: Instagram user id
     :return: Insight metrics of a user
     """
@@ -66,7 +58,7 @@ def get_user_insights(ig_id):
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_medias")
 def get_user_medias(ig_id):
     """
-    Get media objects of a user
+    Get media objects of Instagram user
     """
     url = fb_graph_url + ig_id + "/media"
     params = {
@@ -79,7 +71,7 @@ def get_user_medias(ig_id):
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_media_metadata")
 def get_media_metadata(ig_media_id):
     """
-    Get metadata of an Instagram Media Object.
+    Get metadata of an Instagram media object
     """
     url = fb_graph_url + ig_media_id
     params = {
@@ -93,7 +85,7 @@ def get_media_metadata(ig_media_id):
 @app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_media_insights")
 def get_media_insights(ig_media_id):
     """
-    Get insights of an Instagram Media Object.
+    Get insights of an Instagram media object
     """
     url = fb_graph_url + ig_media_id + "/insights"
     params = {
@@ -111,12 +103,13 @@ def send_data(data):
     :param data: List of data fetched from Instagram API
     :return: API metrics
     """
-    return data
+    pass
 
 
-def update_user_metadata():
+def update_user_data():
     """
-    Celery task chain to poll user data from IG Graph API and send to Stitch API
+    Celery chords to poll user data from IG Graph API and send to Stitch API
+    Fetches user ids from Pream API and starts a task chain
     Logs partial and total execution times on Sentry
     """
     user_ids = []  # TODO: fetch user_ids
@@ -125,6 +118,10 @@ def update_user_metadata():
     insights_chord = chord(group(get_user_insights.s(user_id) for user_id in user_ids), send_data.s())()
     # TODO: log metadata_chord
     # TODO: log insights_chord
+
+
+def update_media_data():
+    pass
 
 
 
