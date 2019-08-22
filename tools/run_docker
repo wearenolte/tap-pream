@@ -16,4 +16,4 @@ docker-compose -f ${DOCKER_COMPOSE_FILE} build
 
 docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --remove-orphans
 
-docker-compose -f ${DOCKER_COMPOSE_FILE} exec tap-tempo bash
+docker-compose -f ${DOCKER_COMPOSE_FILE} exec worker bash

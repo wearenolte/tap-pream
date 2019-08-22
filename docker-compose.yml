@@ -1,16 +1,19 @@
 version: '3'
+
 services:
+
   worker:
     build:
       context: .
       dockerfile: dockerfile
-    image: worker:latest
+    image: worker
     depends_on:
       - redis
     restart: 'no'
     volumes:
-      - ./tap_stream:/tap_stream
-    working_dir: tap-pream/tap_pream
+      - ./tap_pream:/tap_pream
+    working_dir: /tap_pream
+    command: tail -f /dev/null
 
   redis:
     image: redis

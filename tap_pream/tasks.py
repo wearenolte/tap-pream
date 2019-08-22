@@ -1,6 +1,6 @@
 import requests
 
-access_token: "EAAGvXsNlQlQBAPrFpU59AXKAUyOUlUnYHdmS9XItpZAhdobTcqmQ6DnB9iuCY759auJOfr3jjrZA1s7mFaBf7FKpVg8K5CuwCYPaTXZA82ZAZBzXZBcQFwdiS6wmc47Xq5254dMvMxfZAG3QR6XShK7kyEndfZA8n7VKUb7zYZAm8BAZDZD"
+from secret import access_token
 
 
 fb_graph_url = "https://graph.facebook.com/v4.0/"
@@ -8,9 +8,6 @@ ig_business_id = "17841401743760151"
 
 session = requests.Session()
 
-import sys
-
-print(sys.path)
 
 class Client:
     def __init__(self):
@@ -77,6 +74,7 @@ print("insights: ", "\n", insights)
 print("media objects: ", "\n", media_objects)
 print("media metadata :", "\n", media_metadata)
 print("media insights :", "\n", media_insights)
+
 
 
 
