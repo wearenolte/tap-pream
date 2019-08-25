@@ -22,7 +22,7 @@ class Client:
 http_client = Client()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_metadata")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_user_metadata")
 def get_user_metadata(ig_id):
     """
     Get Instagram user metadata
@@ -38,7 +38,7 @@ def get_user_metadata(ig_id):
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_insights")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_user_insights")
 def get_user_insights(ig_id):
     """
     Get insights of Instagram user
@@ -55,7 +55,7 @@ def get_user_insights(ig_id):
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_user_medias")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_user_medias")
 def get_user_medias(ig_id):
     """
     Get media objects of Instagram user
@@ -68,7 +68,7 @@ def get_user_medias(ig_id):
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_media_metadata")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_media_metadata")
 def get_media_metadata(ig_media_id):
     """
     Get metadata of an Instagram media object
@@ -82,7 +82,7 @@ def get_media_metadata(ig_media_id):
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=True, name="instagram.get_media_insights")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_media_insights")
 def get_media_insights(ig_media_id):
     """
     Get insights of an Instagram media object
