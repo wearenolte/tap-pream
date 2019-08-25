@@ -11,7 +11,7 @@ app = Celery(
 
 app.conf.beat_schedule = {
     "test-beat": {
-        "task": "tasks.test_task_flow",
+        "task": "instagram.tasks.test_task_flow",
         "schedule": 30.0,
     },
 }
