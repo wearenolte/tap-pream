@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
-    image: worker
+    image: &img worker
     depends_on:
       - redis
     restart: 'no'
@@ -14,6 +14,19 @@ services:
       - ./tap_pream:/tap_pream
     working_dir: /tap_pream
     command: tail -f /dev/null
+
+  beat:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: *img
+    command: [celery, beat, --app=celery_app.app, --loglevel=INFO]
+    depends_on:
+      - redis
+    volumes:
+      - ./tap_pream:/tap_pream
+    restart: 'no'
+    working_dir: /tap_pream
 
   redis:
     image: redis

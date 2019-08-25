@@ -1,11 +1,11 @@
 import requests
+from requests.exceptions import RequestException
 from datetime import datetime
 
 from celery import chord, group
 from requests.exceptions import RequestException
 
 from celery_app import app
-
 from secret import access_token
 
 
@@ -32,7 +32,7 @@ def get_user_metadata(ig_id):
     url = fb_graph_url + ig_id
     params = {
         "access_token": access_token,
-        "fields": "followers_count,media_count"
+        "fields": "id,ig_id,followers_count,media_count"
     }
     r = requests.Request(method='GET', url=url, params=params)
     return http_client.session.send(r.prepare()).json()
@@ -96,11 +96,11 @@ def get_media_insights(ig_media_id):
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task
-def send_data(data):
+@app.task(name="instagram.target_stitch")
+def target_stitch(data):
     """
     Send data to Stitch Import API
-    :param data: List of data fetched from Instagram API
+    :param data: List of data points returned from Instagram tasks
     :return: API metrics
     """
     pass
@@ -114,14 +114,48 @@ def update_user_data():
     """
     user_ids = []  # TODO: fetch user_ids
     # TODO: add error logging: apply_sync(link_error=e)
-    metadata_chord = chord(group(get_user_metadata.s(user_id) for user_id in user_ids), send_data.s())()
-    insights_chord = chord(group(get_user_insights.s(user_id) for user_id in user_ids), send_data.s())()
+    metadata_tasks = chord(group(get_user_metadata.s(user_id) for user_id in user_ids), send_data.s())
+    insights_tasks = chord(group(get_user_insights.s(user_id) for user_id in user_ids), send_data.s())
+    group(metadata_tasks, insights_tasks).apply_async()
+    return 1
     # TODO: log metadata_chord
     # TODO: log insights_chord
 
 
 def update_media_data():
     pass
+
+
+@app.task(autoretry_for=(RequestException,), retry_backoff=1)
+def test_request_fail():
+    try:
+        raise RequestException
+    except RequestException as e:
+        print('Try {0}/{1}'.format(test_request_fail.request.retries, test_request_fail.max_retries))
+        # Print log message with current retry
+        raise
+
+
+
+@app.task
+def test_task_send(a_list):
+    return f"a list: {a_list}"
+
+
+@app.task
+def test_task_get_data(d):
+    return "user: " + d
+
+
+@app.task
+def test_task_flow():
+    user_ids_1 = ["1", "2", "3", "4", "5"]
+    user_ids_2 = ["10", "11", "12", "13", "14"]
+    task_flow_1 = chord(group(test_task_get_data.s(user_id) for user_id in user_ids_1), test_task_send.s())
+    task_flow_2 = chord(group(test_task_get_data.s(user_id) for user_id in user_ids_2), test_task_send.s())
+    tasks = group(task_flow_1, task_flow_2).apply_async()
+    return tasks
+
 
 
 
