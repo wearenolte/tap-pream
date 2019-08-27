@@ -9,6 +9,7 @@ app = Celery(
     include=["instagram.tasks"],
 )
 
+# TODO: use crontab for scheduling
 app.conf.beat_schedule = {
     "test-beat": {
         "task": "instagram.tasks.test_task_flow",

@@ -22,7 +22,7 @@ class Client:
 http_client = Client()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_user_metadata")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-user-metadata")
 def get_user_metadata(ig_id):
     """
     Get Instagram user metadata
@@ -34,11 +34,11 @@ def get_user_metadata(ig_id):
         "access_token": access_token,
         "fields": "id,ig_id,followers_count,media_count"
     }
-    r = requests.Request(method='GET', url=url, params=params)
+    r = requests.Request(method="GET", url=url, params=params)
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_user_insights")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-user-insights")
 def get_user_insights(ig_id):
     """
     Get insights of Instagram user
@@ -51,11 +51,11 @@ def get_user_insights(ig_id):
         "metric": "audience_gender_age",
         "period": "lifetime"
     }
-    r = requests.Request(method='GET', url=url, params=params)
+    r = requests.Request(method="GET", url=url, params=params)
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_user_medias")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-user-medias")
 def get_user_medias(ig_id):
     """
     Get media objects of Instagram user
@@ -64,11 +64,11 @@ def get_user_medias(ig_id):
     params = {
         "access_token": access_token,
     }
-    r = requests.Request(method='GET', url=url, params=params)
+    r = requests.Request(method="GET", url=url, params=params)
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_media_metadata")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-media-metadata")
 def get_media_metadata(ig_media_id):
     """
     Get metadata of an Instagram media object
@@ -76,13 +76,13 @@ def get_media_metadata(ig_media_id):
     url = fb_graph_url + ig_media_id
     params = {
         "access_token": access_token,
-        "fields": "caption,comments_count,like_count,media_type"
+        "fields": "id,_ig_id,caption,comments_count,like_count,media_type"
     }
-    r = requests.Request(method='GET', url=url, params=params)
+    r = requests.Request(method="GET", url=url, params=params)
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get_media_insights")
+@app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-media-insights")
 def get_media_insights(ig_media_id):
     """
     Get insights of an Instagram media object
@@ -92,20 +92,22 @@ def get_media_insights(ig_media_id):
         "access_token": access_token,
         "metric": "engagement,impressions,reach"
     }
-    r = requests.Request(method='GET', url=url, params=params)
+    r = requests.Request(method="GET", url=url, params=params)
     return http_client.session.send(r.prepare()).json()
 
 
-@app.task(name="instagram.target_stitch")
+@app.task(name="instagram.target-stitch")
 def target_stitch(data):
     """
     Send data to Stitch Import API
+    Max 4 MB or 10.000 data points
     :param data: List of data points returned from Instagram tasks
     :return: API metrics
     """
     pass
 
 
+@app.task(name="instagram.update_user_metadata")
 def update_user_data():
     """
     Celery chords to poll user data from IG Graph API and send to Stitch API
@@ -114,10 +116,9 @@ def update_user_data():
     """
     user_ids = []  # TODO: fetch user_ids
     # TODO: add error logging: apply_sync(link_error=e)
-    metadata_tasks = chord(group(get_user_metadata.s(user_id) for user_id in user_ids), send_data.s())
-    insights_tasks = chord(group(get_user_insights.s(user_id) for user_id in user_ids), send_data.s())
+    metadata_tasks = chord(group(get_user_metadata.s(user_id) for user_id in user_ids), target_stitch.s())
+    insights_tasks = chord(group(get_user_insights.s(user_id) for user_id in user_ids), target_stitch.s())
     group(metadata_tasks, insights_tasks).apply_async()
-    return 1
     # TODO: log metadata_chord
     # TODO: log insights_chord
 
