@@ -1,0 +1,6 @@
+create table ig_user_insights(
+  ig_id varchar(50),
+  server_time timestamptz,
+  distkey(user_id),
+  sortkey(user_id, server_time)
+);

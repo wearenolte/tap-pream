@@ -1,6 +1,6 @@
 import requests
 from requests.exceptions import RequestException
-from datetime import datetime
+from datetime import datetime, timezone
 
 from celery import chord, group
 from requests.exceptions import RequestException
@@ -18,6 +18,13 @@ class Client:
     def __init__(self):
         self.session = requests.Session()
 
+    def request(self, method, url, params):
+        req = requests.Request(method=method, url=url, params=params)
+        res = self.session.send(req.prepare()).json()
+        if not res.ok and 500 <= res.status_code < 600:
+            res.raise_for_status()
+        return res.json()
+
 
 http_client = Client()
 
@@ -26,24 +33,22 @@ http_client = Client()
 def get_user_metadata(ig_id):
     """
     Get Instagram user metadata
-    :param ig_id: Instagram user id
-    :return: Follower and media count of user
     """
     url = fb_graph_url + ig_id
     params = {
         "access_token": access_token,
         "fields": "id,ig_id,followers_count,media_count"
     }
-    r = requests.Request(method="GET", url=url, params=params)
-    return http_client.session.send(r.prepare()).json()
+    data = http_client.request(method="GET", url=url, params=params)
+    now = datetime.now(timezone.utc)
+    data['server_time'] = now.strftime("%Y-%m-%d %H:%M:%S %Z")
+    return data
 
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-user-insights")
 def get_user_insights(ig_id):
     """
     Get insights of Instagram user
-    :param ig_id: Instagram user id
-    :return: Insight metrics of a user
     """
     url = fb_graph_url + ig_id + "/insights"
     params = {
@@ -51,8 +56,10 @@ def get_user_insights(ig_id):
         "metric": "audience_gender_age",
         "period": "lifetime"
     }
-    r = requests.Request(method="GET", url=url, params=params)
-    return http_client.session.send(r.prepare()).json()
+    r = requests.get(url=url, params=params)
+    if not r.ok:
+        r.raise_for_status()
+    return r.json()
 
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-user-medias")
@@ -64,8 +71,10 @@ def get_user_medias(ig_id):
     params = {
         "access_token": access_token,
     }
-    r = requests.Request(method="GET", url=url, params=params)
-    return http_client.session.send(r.prepare()).json()
+    r = requests.get(url=url, params=params)
+    if not r.ok:
+        r.raise_for_status()
+    return r.json()
 
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-media-metadata")
@@ -97,12 +106,10 @@ def get_media_insights(ig_media_id):
 
 
 @app.task(name="instagram.target-stitch")
-def target_stitch(data):
+def target_redshift(data):
     """
     Send data to Stitch Import API
     Max 4 MB or 10.000 data points
-    :param data: List of data points returned from Instagram tasks
-    :return: API metrics
     """
     pass
 
@@ -116,8 +123,8 @@ def update_user_data():
     """
     user_ids = []  # TODO: fetch user_ids
     # TODO: add error logging: apply_sync(link_error=e)
-    metadata_tasks = chord(group(get_user_metadata.s(user_id) for user_id in user_ids), target_stitch.s())
-    insights_tasks = chord(group(get_user_insights.s(user_id) for user_id in user_ids), target_stitch.s())
+    metadata_tasks = chord(group(get_user_metadata.s(user_id) for user_id in user_ids), target_redshift.s())
+    insights_tasks = chord(group(get_user_insights.s(user_id) for user_id in user_ids), target_redshift.s())
     group(metadata_tasks, insights_tasks).apply_async()
     # TODO: log metadata_chord
     # TODO: log insights_chord
@@ -135,7 +142,6 @@ def test_request_fail():
         print('Try {0}/{1}'.format(test_request_fail.request.retries, test_request_fail.max_retries))
         # Print log message with current retry
         raise
-
 
 
 @app.task
