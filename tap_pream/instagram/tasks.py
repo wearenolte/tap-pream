@@ -20,7 +20,7 @@ class Client:
 
     def request(self, method, url, params):
         req = requests.Request(method=method, url=url, params=params)
-        res = self.session.send(req.prepare()).json()
+        res = self.session.send(req.prepare())
         if not res.ok and 500 <= res.status_code < 600:
             res.raise_for_status()
         return res.json()
