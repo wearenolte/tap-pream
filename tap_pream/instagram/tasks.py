@@ -29,6 +29,12 @@ class Client:
 http_client = Client()
 
 
+def add_timestamp(data):
+    now = datetime.now(timezone.utc)
+    data['server_time'] = now.strftime("%Y-%m-%d %H:%M:%S %Z")
+    return data
+
+
 @app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-user-metadata")
 def get_user_metadata(ig_id):
     """
@@ -40,8 +46,7 @@ def get_user_metadata(ig_id):
         "fields": "id,ig_id,followers_count,media_count"
     }
     data = http_client.request(method="GET", url=url, params=params)
-    now = datetime.now(timezone.utc)
-    data['server_time'] = now.strftime("%Y-%m-%d %H:%M:%S %Z")
+    data = add_timestamp(data)
     return data
 
 
@@ -56,10 +61,9 @@ def get_user_insights(ig_id):
         "metric": "audience_gender_age",
         "period": "lifetime"
     }
-    r = requests.get(url=url, params=params)
-    if not r.ok:
-        r.raise_for_status()
-    return r.json()
+    data = http_client.request(method="GET", url=url, params=params)
+    data = add_timestamp(data)
+    return data
 
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-user-medias")
@@ -71,10 +75,9 @@ def get_user_medias(ig_id):
     params = {
         "access_token": access_token,
     }
-    r = requests.get(url=url, params=params)
-    if not r.ok:
-        r.raise_for_status()
-    return r.json()
+    data = http_client.request(method="GET", url=url, params=params)
+    data = add_timestamp(data)
+    return data
 
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-media-metadata")
@@ -87,8 +90,9 @@ def get_media_metadata(ig_media_id):
         "access_token": access_token,
         "fields": "id,_ig_id,caption,comments_count,like_count,media_type"
     }
-    r = requests.Request(method="GET", url=url, params=params)
-    return http_client.session.send(r.prepare()).json()
+    data = http_client.request(method="GET", url=url, params=params)
+    data = add_timestamp(data)
+    return data
 
 
 @app.task(autoretry_for=(RequestException,), retry_backoff=1, name="instagram.get-media-insights")
@@ -101,8 +105,9 @@ def get_media_insights(ig_media_id):
         "access_token": access_token,
         "metric": "engagement,impressions,reach"
     }
-    r = requests.Request(method="GET", url=url, params=params)
-    return http_client.session.send(r.prepare()).json()
+    data = http_client.request(method="GET", url=url, params=params)
+    data = add_timestamp(data)
+    return data
 
 
 @app.task(name="instagram.target-stitch")
